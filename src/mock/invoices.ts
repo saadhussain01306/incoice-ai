@@ -21,6 +21,8 @@ function rand(seed: number) {
   return x - Math.floor(x);
 }
 
+// Stable base epoch so SSR & client render identical timestamps
+const BASE_TS = Date.UTC(2026, 1, 14, 9, 30, 0);
 function makeInvoice(i: number): Invoice {
   const vendor = vendors[i % vendors.length];
   const amount = Math.round(5000 + rand(i) * 95000);
@@ -59,7 +61,7 @@ function makeInvoice(i: number): Invoice {
     vendor,
     amount,
     portalAmount,
-    uploadedAt: new Date(Date.now() - i * 1000 * 60 * 17).toISOString(),
+    uploadedAt: new Date(BASE_TS - i * 1000 * 60 * 17).toISOString(),
     source: sources[i % sources.length],
     status,
     confidence,
@@ -70,7 +72,7 @@ function makeInvoice(i: number): Invoice {
       invoiceNumber: id,
       vendorName: vendor,
       gstNumber: `27AABCU${9600 + i}R1Z${i % 9}`,
-      invoiceDate: new Date(Date.now() - i * 1000 * 60 * 60 * 6)
+      invoiceDate: new Date(BASE_TS - i * 1000 * 60 * 60 * 6)
         .toISOString()
         .slice(0, 10),
       currency: "INR",
@@ -83,7 +85,7 @@ function makeInvoice(i: number): Invoice {
       invoiceNumber: id,
       vendorName: vendor,
       gstNumber: `27AABCU${9600 + i}R1Z${i % 9}`,
-      invoiceDate: new Date(Date.now() - i * 1000 * 60 * 60 * 6)
+      invoiceDate: new Date(BASE_TS - i * 1000 * 60 * 60 * 6)
         .toISOString()
         .slice(0, 10),
       currency: "INR",
@@ -108,7 +110,7 @@ export const mockAudit: AuditEvent[] = mockInvoices.flatMap((inv, i) => {
     {
       id: `${inv.id}-A1`,
       invoiceId: inv.id,
-      actor: "Lambda: ingest-fn",
+      actor: "Ingestion Service",
       action: `Invoice received from ${inv.source}`,
       timestamp: inv.uploadedAt,
       status: "info",
@@ -116,7 +118,7 @@ export const mockAudit: AuditEvent[] = mockInvoices.flatMap((inv, i) => {
     {
       id: `${inv.id}-A2`,
       invoiceId: inv.id,
-      actor: "Bedrock + Textract",
+      actor: "AI Extraction",
       action: `Extracted ${Object.keys(inv.extracted).length} fields · confidence ${(inv.confidence * 100).toFixed(1)}%`,
       timestamp: new Date(new Date(inv.uploadedAt).getTime() + 12000).toISOString(),
       status: "success",
@@ -126,7 +128,7 @@ export const mockAudit: AuditEvent[] = mockInvoices.flatMap((inv, i) => {
     base.push({
       id: `${inv.id}-A3`,
       invoiceId: inv.id,
-      actor: "ECS Fargate: playwright-agent",
+      actor: "Submission Agent",
       action: "Auto-submitted to vendor portal",
       timestamp: new Date(new Date(inv.uploadedAt).getTime() + 45000).toISOString(),
       status: "success",
@@ -144,7 +146,7 @@ export const mockAudit: AuditEvent[] = mockInvoices.flatMap((inv, i) => {
     base.push({
       id: `${inv.id}-A3`,
       invoiceId: inv.id,
-      actor: "Playwright Agent",
+      actor: "Submission Agent",
       action: "Submission failed — portal returned 502",
       timestamp: new Date(new Date(inv.uploadedAt).getTime() + 60000).toISOString(),
       status: "error",

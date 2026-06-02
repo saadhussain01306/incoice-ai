@@ -4,13 +4,19 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/store/authStore";
 
 export const Route = createFileRoute("/_app/settings")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Settings · Invoice AI" }] }),
   component: SettingsPage,
 });
 
 function SettingsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 animate-fade-in">
       <div>
@@ -42,18 +48,30 @@ function SettingsPage() {
         <div className="flex items-center justify-between rounded-md border p-3">
           <div>
             <div className="text-sm font-medium">Capture reviewer corrections</div>
-            <div className="text-xs text-muted-foreground">Used by Bedrock feedback learning loop</div>
+            <div className="text-xs text-muted-foreground">Feeds the AI learning loop</div>
           </div>
           <Switch defaultChecked />
         </div>
       </Card>
 
-      <Card className="space-y-4 p-5">
-        <h3 className="text-sm font-semibold">Integrations</h3>
-        <Row label="Email ingestion" value="invoices@finops.acme.io" />
-        <Row label="Shared drive" value="s3://acme-invoice-drop" />
-        <Row label="Vendor portal" value="https://portal.vendor.acme/api" />
-        <Row label="Bedrock model" value="anthropic.claude-3-5-sonnet-v2" />
+      <Card className="space-y-3 p-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold">Integrations</h3>
+          {!isAdmin && (
+            <Badge variant="outline" className="text-[10px]">
+              Admin only — details hidden
+            </Badge>
+          )}
+        </div>
+        <Row label="Email ingestion" status="Connected" admin={isAdmin} hidden="••• mailbox configured" />
+        <Row label="Document storage" status="Connected" admin={isAdmin} hidden="Object store configured" />
+        <Row label="Vendor portal" status="Connected" admin={isAdmin} hidden="Portal endpoint configured" />
+        <Row label="Extraction model" status="Active" admin={isAdmin} hidden="Managed AI model" />
+        {isAdmin && (
+          <p className="text-[11px] text-muted-foreground">
+            Detailed connection identifiers are available in the internal operator console.
+          </p>
+        )}
       </Card>
 
       <div className="flex justify-end gap-2">
@@ -64,11 +82,28 @@ function SettingsPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({
+  label,
+  status,
+  admin,
+  hidden,
+}: {
+  label: string;
+  status: string;
+  admin: boolean;
+  hidden: string;
+}) {
   return (
     <div className="flex items-center justify-between border-b py-2 last:border-0">
       <div className="text-sm">{label}</div>
-      <div className="font-mono text-xs text-muted-foreground">{value}</div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">
+          {admin ? hidden : "•••"}
+        </span>
+        <Badge variant="outline" className="border-success/30 bg-success/10 text-success">
+          {status}
+        </Badge>
+      </div>
     </div>
   );
 }
