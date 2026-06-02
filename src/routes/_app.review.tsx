@@ -168,6 +168,21 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
     });
   };
 
+  const confirmConfig = {
+    submit: {
+      title: "Accept AI & Submit?",
+      desc: "This will auto-fill the vendor portal using extracted values and trigger Playwright submission.",
+    },
+    reprocess: {
+      title: "Reprocess this invoice?",
+      desc: "The AI extraction pipeline will re-run OCR and field detection on the source document.",
+    },
+    escalate: {
+      title: "Escalate to finance lead?",
+      desc: "This invoice will be flagged for senior reviewer attention.",
+    },
+  };
+
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden p-0">
@@ -188,7 +203,6 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
             <Button variant="ghost" size="icon" className="h-7 w-7"><ChevronRight className="h-3.5 w-3.5" /></Button>
           </div>
         </div>
-        {/* TODO: Integrate OCR bounding box coordinates from Bedrock/Textract API */}
         <div className="relative grid-bg min-h-[360px] bg-muted/20 p-6">
           <div className="mx-auto aspect-[8.5/11] max-w-md rounded-md border bg-card p-6 shadow-sm">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Tax Invoice</div>
@@ -271,23 +285,13 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
         <Button onClick={() => openConfirm("submit")}>
           <CheckCircle2 className="mr-1.5 h-4 w-4" /> Accept AI & Submit
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => setOverrideOpen(true)}
-        >
+        <Button variant="outline" onClick={() => setOverrideOpen(true)}>
           <Pencil className="mr-1.5 h-4 w-4" /> Override values
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => openConfirm("reprocess")}
-        >
+        <Button variant="outline" onClick={() => openConfirm("reprocess")}>
           <Undo2 className="mr-1.5 h-4 w-4" /> Reprocess
         </Button>
-        <Button
-          variant="ghost"
-          className="text-warning"
-          onClick={() => openConfirm("escalate")}
-        >
+        <Button variant="ghost" className="text-warning" onClick={() => openConfirm("escalate")}>
           <ShieldAlert className="mr-1.5 h-4 w-4" /> Escalate
         </Button>
 
@@ -304,4 +308,206 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
                 Reject this invoice?
               </AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently reject <span className="font-mono">{invoice.id}</span> from{
+                This will permanently reject <span className="font-mono">{invoice.id}</span> from
+                the pipeline. The invoice will be archived and excluded from auto-submission.
+                This action is logged in the audit trail.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleReject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Yes, reject invoice
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{confirmAction && confirmConfig[confirmAction].title}</DialogTitle>
+            <DialogDescription>
+              {confirmAction && confirmConfig[confirmAction].desc}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+            <Button onClick={handleConfirm}>
+              <CheckCircle2 className="mr-1.5 h-4 w-4" /> Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <OverrideDialog open={overrideOpen} onOpenChange={setOverrideOpen} invoice={invoice} />
+    </div>
+  );
+}
+
+function OverrideDialog({
+  open,
+  onOpenChange,
+  invoice,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  invoice: Invoice;
+}) {
+  const [values, setValues] = useState<ExtractedFields>(invoice.extracted);
+
+  const set = <K extends keyof ExtractedFields>(key: K, v: ExtractedFields[K]) =>
+    setValues((prev) => ({ ...prev, [key]: v }));
+
+  const numericKeys: Array<keyof ExtractedFields> = [
+    "subtotal",
+    "taxRate",
+    "taxAmount",
+    "totalAmount",
+  ];
+
+  const fields: { key: keyof ExtractedFields; label: string; type?: "number" | "text" }[] = [
+    { key: "invoiceNumber", label: "Invoice #" },
+    { key: "vendorName", label: "Vendor" },
+    { key: "gstNumber", label: "GSTIN" },
+    { key: "invoiceDate", label: "Date" },
+    { key: "currency", label: "Currency" },
+    { key: "subtotal", label: "Subtotal", type: "number" },
+    { key: "taxRate", label: "Tax Rate (%)", type: "number" },
+    { key: "taxAmount", label: "Tax Amount", type: "number" },
+    { key: "totalAmount", label: "Total Amount", type: "number" },
+  ];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="h-4 w-4" /> Override extracted values
+          </DialogTitle>
+          <DialogDescription>
+            Edits are saved as ground-truth and fed back into the extraction model's training loop.
+            Invoice <span className="font-mono">{invoice.id}</span> · {invoice.vendor}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid max-h-[55vh] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+          {fields.map((f) => {
+            const portalVal = invoice.portal[f.key];
+            const aiVal = invoice.extracted[f.key];
+            const drift = String(portalVal) !== String(aiVal);
+            return (
+              <div key={String(f.key)} className="space-y-1">
+                <Label className="flex items-center justify-between text-xs">
+                  <span>{f.label}</span>
+                  {drift && (
+                    <span className="text-[10px] font-normal text-destructive">
+                      portal: {String(portalVal)}
+                    </span>
+                  )}
+                </Label>
+                <Input
+                  type={numericKeys.includes(f.key) ? "number" : "text"}
+                  value={String(values[f.key] ?? "")}
+                  onChange={(e) =>
+                    set(
+                      f.key,
+                      (numericKeys.includes(f.key)
+                        ? Number(e.target.value)
+                        : e.target.value) as ExtractedFields[typeof f.key],
+                    )
+                  }
+                  className={cn(drift && "border-destructive/60")}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="ghost" onClick={() => setValues(invoice.portal)}>
+            Copy from portal
+          </Button>
+          <Button variant="outline" onClick={() => setValues(invoice.extracted)}>
+            Reset
+          </Button>
+          <Button
+            onClick={() => {
+              toast.success(`${invoice.id}: overrides saved & queued for re-submission`, {
+                description: "Ground-truth corrections will feed the AI learning loop.",
+              });
+              onOpenChange(false);
+            }}
+          >
+            <CheckCircle2 className="mr-1.5 h-4 w-4" /> Save & resubmit
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function BoundingField({
+  label,
+  value,
+  confidence,
+  mismatch,
+}: {
+  label: string;
+  value: string;
+  confidence: number;
+  mismatch?: boolean;
+}) {
+  return (
+    <div className={cn("relative rounded-md border border-dashed p-2", mismatch ? "border-destructive/60 bg-destructive/10" : "border-ai/40 bg-ai/5")}>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-sm font-medium tabular-nums">{value}</div>
+      <span className={cn("absolute right-1.5 top-1.5 text-[9px] tabular-nums", mismatch ? "text-destructive" : "text-ai")}>
+        {(confidence * 100).toFixed(0)}%
+      </span>
+    </div>
+  );
+}
+
+function FieldList({
+  fields,
+  mismatches,
+  side,
+  portal,
+}: {
+  fields: ReturnType<typeof useApp>["invoices"][number]["extracted"];
+  portal: ReturnType<typeof useApp>["invoices"][number]["portal"];
+  mismatches: string[];
+  side: "ai" | "portal";
+}) {
+  const gstMis = mismatches.some((m) => m.includes("GST"));
+  const amtMis = mismatches.some((m) => m.includes("amount"));
+  const rows: { label: string; value: string; bad?: boolean }[] = [
+    { label: "Invoice #", value: fields.invoiceNumber },
+    { label: "Vendor", value: fields.vendorName },
+    { label: "GSTIN", value: fields.gstNumber },
+    { label: "Date", value: fields.invoiceDate },
+    { label: "Currency", value: fields.currency },
+    { label: "Tax Rate", value: `${fields.taxRate}%`, bad: gstMis },
+    { label: "Subtotal", value: fmt(fields.subtotal) },
+    { label: "Tax", value: fmt(fields.taxAmount), bad: gstMis },
+    { label: "Total", value: fmt(fields.totalAmount), bad: amtMis },
+  ];
+  return (
+    <dl className="divide-y divide-border">
+      {rows.map((r) => (
+        <div key={r.label} className="flex items-center justify-between py-2">
+          <dt className="text-xs text-muted-foreground">{r.label}</dt>
+          <dd className={cn("text-sm font-medium tabular-nums", r.bad && "text-destructive")}>
+            {r.value}
+            {r.bad && side === "ai" && (
+              <span className="ml-1.5 text-[10px] text-muted-foreground">
+                (portal: {r.label === "Tax Rate" ? `${portal.taxRate}%` : r.label === "Total" ? fmt(portal.totalAmount) : fmt(portal.taxAmount)})
+              </span>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
