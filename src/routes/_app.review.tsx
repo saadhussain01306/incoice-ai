@@ -123,6 +123,7 @@ function ReviewPage() {
 }
 
 function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invoices"][number] }) {
+  const [overrideOpen, setOverrideOpen] = useState(false);
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden p-0">
