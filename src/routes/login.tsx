@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "@/store/authStore";
+import { toast } from "sonner";
 import { Sparkles, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/login")({
@@ -35,6 +36,7 @@ function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
+      toast.success("Signed in successfully", { description: `Welcome back, ${email}.` });
       navigate({ to: "/", replace: true });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Sign-in failed");

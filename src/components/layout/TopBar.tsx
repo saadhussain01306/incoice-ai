@@ -1,4 +1,5 @@
 import { Bell, Search, Sun, Moon, LogOut, UserCircle, AlertTriangle, CheckCircle2, Sparkles, Info } from "lucide-react";
+import { toast } from "sonner";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -219,6 +220,7 @@ export function TopBar() {
             <DropdownMenuItem
               onClick={() => {
                 logout();
+                toast.success("Signed out", { description: "You have been logged out successfully." });
                 navigate({ to: "/login", replace: true });
               }}
               className="text-destructive focus:text-destructive"

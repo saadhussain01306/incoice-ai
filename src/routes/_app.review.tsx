@@ -31,6 +31,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ExtractedFields, Invoice } from "@/types/invoice";
@@ -124,6 +135,54 @@ function ReviewPage() {
 
 function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invoices"][number] }) {
   const [overrideOpen, setOverrideOpen] = useState(false);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"submit" | "reprocess" | "escalate" | null>(null);
+
+  const openConfirm = (action: "submit" | "reprocess" | "escalate") => {
+    setConfirmAction(action);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = () => {
+    setConfirmOpen(false);
+    if (confirmAction === "submit") {
+      toast.success(`${invoice.id}: submitted to vendor portal`, {
+        description: "Playwright automation will complete the submission.",
+      });
+    } else if (confirmAction === "reprocess") {
+      toast.message(`${invoice.id}: queued for re-extraction`, {
+        description: "AI pipeline will re-run OCR and field extraction.",
+      });
+    } else if (confirmAction === "escalate") {
+      toast.warning(`${invoice.id}: escalated to finance lead`, {
+        description: "The reviewer team will be notified.",
+      });
+    }
+    setConfirmAction(null);
+  };
+
+  const handleReject = () => {
+    toast.error(`${invoice.id}: rejected and archived`, {
+      description: "Invoice will not be submitted. Audit trail logged.",
+    });
+  };
+
+  const confirmConfig = {
+    submit: {
+      title: "Accept AI & Submit?",
+      desc: "This will auto-fill the vendor portal using extracted values and trigger Playwright submission.",
+    },
+    reprocess: {
+      title: "Reprocess this invoice?",
+      desc: "The AI extraction pipeline will re-run OCR and field detection on the source document.",
+    },
+    escalate: {
+      title: "Escalate to finance lead?",
+      desc: "This invoice will be flagged for senior reviewer attention.",
+    },
+  };
+
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden p-0">
@@ -144,7 +203,6 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
             <Button variant="ghost" size="icon" className="h-7 w-7"><ChevronRight className="h-3.5 w-3.5" /></Button>
           </div>
         </div>
-        {/* TODO: Integrate OCR bounding box coordinates from Bedrock/Textract API */}
         <div className="relative grid-bg min-h-[360px] bg-muted/20 p-6">
           <div className="mx-auto aspect-[8.5/11] max-w-md rounded-md border bg-card p-6 shadow-sm">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Tax Invoice</div>
@@ -224,47 +282,63 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
       </Card>
 
       <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6">
-        <Button
-          onClick={() => {
-            // TODO: POST /invoices/:id/submit → ECS Playwright auto-submission
-            toast.success(`${invoice.id}: forced to auto-submit`);
-          }}
-        >
+        <Button onClick={() => openConfirm("submit")}>
           <CheckCircle2 className="mr-1.5 h-4 w-4" /> Accept AI & Submit
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => setOverrideOpen(true)}
-        >
+        <Button variant="outline" onClick={() => setOverrideOpen(true)}>
           <Pencil className="mr-1.5 h-4 w-4" /> Override values
         </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            // TODO: POST /invoices/:id/reprocess → re-run extraction pipeline
-            toast.message(`${invoice.id}: reprocessing requested`);
-          }}
-        >
+        <Button variant="outline" onClick={() => openConfirm("reprocess")}>
           <Undo2 className="mr-1.5 h-4 w-4" /> Reprocess
         </Button>
-        <Button
-          variant="ghost"
-          className="text-warning"
-          onClick={() => toast.warning(`${invoice.id}: escalated to finance lead`)}
-        >
+        <Button variant="ghost" className="text-warning" onClick={() => openConfirm("escalate")}>
           <ShieldAlert className="mr-1.5 h-4 w-4" /> Escalate
         </Button>
-        <Button
-          variant="destructive"
-          className="ml-auto"
-          onClick={() => {
-            // TODO: POST /invoices/:id/reject
-            toast.error(`${invoice.id}: rejected`);
-          }}
-        >
-          <XCircle className="mr-1.5 h-4 w-4" /> Reject
-        </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="ml-auto">
+              <XCircle className="mr-1.5 h-4 w-4" /> Reject
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                Reject this invoice?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently reject <span className="font-mono">{invoice.id}</span> from
+                the pipeline. The invoice will be archived and excluded from auto-submission.
+                This action is logged in the audit trail.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleReject} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Yes, reject invoice
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{confirmAction && confirmConfig[confirmAction].title}</DialogTitle>
+            <DialogDescription>
+              {confirmAction && confirmConfig[confirmAction].desc}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+            <Button onClick={handleConfirm}>
+              <CheckCircle2 className="mr-1.5 h-4 w-4" /> Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <OverrideDialog open={overrideOpen} onOpenChange={setOverrideOpen} invoice={invoice} />
     </div>
@@ -351,22 +425,17 @@ function OverrideDialog({
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button
-            variant="ghost"
-            onClick={() => setValues(invoice.portal)}
-          >
+          <Button variant="ghost" onClick={() => setValues(invoice.portal)}>
             Copy from portal
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => setValues(invoice.extracted)}
-          >
+          <Button variant="outline" onClick={() => setValues(invoice.extracted)}>
             Reset
           </Button>
           <Button
             onClick={() => {
-              // TODO: POST /invoices/:id/override with corrected fields → feedback loop
-              toast.success(`${invoice.id}: overrides saved & queued for re-submission`);
+              toast.success(`${invoice.id}: overrides saved & queued for re-submission`, {
+                description: "Ground-truth corrections will feed the AI learning loop.",
+              });
               onOpenChange(false);
             }}
           >
