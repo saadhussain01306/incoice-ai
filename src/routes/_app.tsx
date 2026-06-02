@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_app")({
               <main className="flex-1 p-4 md:p-6">
                 <Outlet />
               </main>
-              <Toaster theme="dark" position="bottom-right" />
+              <Toaster position="bottom-right" richColors closeButton />
             </SidebarInset>
           </SidebarProvider>
         </AppProvider>
