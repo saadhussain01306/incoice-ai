@@ -11,8 +11,15 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppValidationRouteImport } from './routes/_app.validation'
+import { Route as AppSubmissionsRouteImport } from './routes/_app.submissions'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppReviewRouteImport } from './routes/_app.review'
 import { Route as AppQueueRouteImport } from './routes/_app.queue'
+import { Route as AppHealthRouteImport } from './routes/_app.health'
+import { Route as AppExtractionRouteImport } from './routes/_app.extraction'
+import { Route as AppAuditRouteImport } from './routes/_app.audit'
+import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -21,6 +28,21 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppValidationRoute = AppValidationRouteImport.update({
+  id: '/validation',
+  path: '/validation',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSubmissionsRoute = AppSubmissionsRouteImport.update({
+  id: '/submissions',
+  path: '/submissions',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppReviewRoute = AppReviewRouteImport.update({
@@ -33,30 +55,103 @@ const AppQueueRoute = AppQueueRouteImport.update({
   path: '/queue',
   getParentRoute: () => AppRoute,
 } as any)
+const AppHealthRoute = AppHealthRouteImport.update({
+  id: '/health',
+  path: '/health',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExtractionRoute = AppExtractionRouteImport.update({
+  id: '/extraction',
+  path: '/extraction',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAuditRoute = AppAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/analytics': typeof AppAnalyticsRoute
+  '/audit': typeof AppAuditRoute
+  '/extraction': typeof AppExtractionRoute
+  '/health': typeof AppHealthRoute
   '/queue': typeof AppQueueRoute
   '/review': typeof AppReviewRoute
+  '/settings': typeof AppSettingsRoute
+  '/submissions': typeof AppSubmissionsRoute
+  '/validation': typeof AppValidationRoute
 }
 export interface FileRoutesByTo {
+  '/analytics': typeof AppAnalyticsRoute
+  '/audit': typeof AppAuditRoute
+  '/extraction': typeof AppExtractionRoute
+  '/health': typeof AppHealthRoute
   '/queue': typeof AppQueueRoute
   '/review': typeof AppReviewRoute
+  '/settings': typeof AppSettingsRoute
+  '/submissions': typeof AppSubmissionsRoute
+  '/validation': typeof AppValidationRoute
   '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/_app/analytics': typeof AppAnalyticsRoute
+  '/_app/audit': typeof AppAuditRoute
+  '/_app/extraction': typeof AppExtractionRoute
+  '/_app/health': typeof AppHealthRoute
   '/_app/queue': typeof AppQueueRoute
   '/_app/review': typeof AppReviewRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/submissions': typeof AppSubmissionsRoute
+  '/_app/validation': typeof AppValidationRoute
   '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/queue' | '/review'
+  fullPaths:
+    | '/'
+    | '/analytics'
+    | '/audit'
+    | '/extraction'
+    | '/health'
+    | '/queue'
+    | '/review'
+    | '/settings'
+    | '/submissions'
+    | '/validation'
   fileRoutesByTo: FileRoutesByTo
-  to: '/queue' | '/review' | '/'
-  id: '__root__' | '/_app' | '/_app/queue' | '/_app/review' | '/_app/'
+  to:
+    | '/analytics'
+    | '/audit'
+    | '/extraction'
+    | '/health'
+    | '/queue'
+    | '/review'
+    | '/settings'
+    | '/submissions'
+    | '/validation'
+    | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/analytics'
+    | '/_app/audit'
+    | '/_app/extraction'
+    | '/_app/health'
+    | '/_app/queue'
+    | '/_app/review'
+    | '/_app/settings'
+    | '/_app/submissions'
+    | '/_app/validation'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -79,6 +174,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/validation': {
+      id: '/_app/validation'
+      path: '/validation'
+      fullPath: '/validation'
+      preLoaderRoute: typeof AppValidationRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/submissions': {
+      id: '/_app/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof AppSubmissionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/review': {
       id: '/_app/review'
       path: '/review'
@@ -93,18 +209,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppQueueRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/health': {
+      id: '/_app/health'
+      path: '/health'
+      fullPath: '/health'
+      preLoaderRoute: typeof AppHealthRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/extraction': {
+      id: '/_app/extraction'
+      path: '/extraction'
+      fullPath: '/extraction'
+      preLoaderRoute: typeof AppExtractionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/audit': {
+      id: '/_app/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AppAuditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/analytics': {
+      id: '/_app/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
+  AppAuditRoute: typeof AppAuditRoute
+  AppExtractionRoute: typeof AppExtractionRoute
+  AppHealthRoute: typeof AppHealthRoute
   AppQueueRoute: typeof AppQueueRoute
   AppReviewRoute: typeof AppReviewRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppSubmissionsRoute: typeof AppSubmissionsRoute
+  AppValidationRoute: typeof AppValidationRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
+  AppAuditRoute: AppAuditRoute,
+  AppExtractionRoute: AppExtractionRoute,
+  AppHealthRoute: AppHealthRoute,
   AppQueueRoute: AppQueueRoute,
   AppReviewRoute: AppReviewRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppSubmissionsRoute: AppSubmissionsRoute,
+  AppValidationRoute: AppValidationRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
