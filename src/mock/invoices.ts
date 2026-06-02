@@ -21,6 +21,8 @@ function rand(seed: number) {
   return x - Math.floor(x);
 }
 
+// Stable base epoch so SSR & client render identical timestamps
+const BASE_TS = Date.UTC(2026, 1, 14, 9, 30, 0);
 function makeInvoice(i: number): Invoice {
   const vendor = vendors[i % vendors.length];
   const amount = Math.round(5000 + rand(i) * 95000);
