@@ -1,4 +1,5 @@
 import { Bell, Search, Sun, Moon, LogOut, UserCircle, AlertTriangle, CheckCircle2, Sparkles, Info } from "lucide-react";
+import { toast } from "sonner";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
