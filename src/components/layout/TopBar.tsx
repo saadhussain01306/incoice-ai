@@ -220,6 +220,7 @@ export function TopBar() {
             <DropdownMenuItem
               onClick={() => {
                 logout();
+                toast.success("Signed out", { description: "You have been logged out successfully." });
                 navigate({ to: "/login", replace: true });
               }}
               className="text-destructive focus:text-destructive"
