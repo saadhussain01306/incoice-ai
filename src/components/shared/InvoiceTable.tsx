@@ -105,28 +105,17 @@ export function InvoiceTable({
                 )}
               </>
             );
-            return onRowClick ? (
+            return (
               <tr
                 key={inv.id}
-                onClick={() => onRowClick(inv)}
+                onClick={() => onRowClick?.(inv)}
                 className={cn(
-                  "cursor-pointer border-b transition-colors hover:bg-accent/50",
+                  "border-b transition-colors hover:bg-accent/50",
+                  onRowClick && "cursor-pointer",
                   active && "bg-accent",
                 )}
               >
                 {Row}
-              </tr>
-            ) : (
-              <tr key={inv.id} className="border-b transition-colors hover:bg-accent/50">
-                <td colSpan={8} className="p-0">
-                  <Link
-                    to="/review"
-                    search={{ id: inv.id }}
-                    className="grid grid-cols-[1fr_1.2fr_0.9fr_0.7fr_1fr_0.9fr_0.8fr_0.8fr] items-center"
-                  >
-                    {Row}
-                  </Link>
-                </td>
               </tr>
             );
           })}
