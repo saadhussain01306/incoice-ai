@@ -41,7 +41,7 @@ function AuditPage() {
             Immutable DynamoDB log of every pipeline event, user action, and system call.
           </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => toast.success("Audit trail exported", { description: "CSV download started with 60 most recent events." })}>
           <Download className="mr-1.5 h-4 w-4" /> Export
         </Button>
       </div>
