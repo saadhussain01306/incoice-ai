@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,15 +20,14 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { user, ready, login } = useAuth();
   const navigate = useNavigate();
-  const path = useRouterState({ select: (r) => r.location.search as { redirect?: string } });
   const [email, setEmail] = useState("reviewer@acme.io");
   const [password, setPassword] = useState("demo");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (ready && user) navigate({ to: path?.redirect || "/", replace: true });
-  }, [ready, user, navigate, path]);
+    if (ready && user) navigate({ to: "/", replace: true });
+  }, [ready, user, navigate]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -36,7 +35,7 @@ function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      navigate({ to: path?.redirect || "/", replace: true });
+      navigate({ to: "/", replace: true });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Sign-in failed");
     } finally {

@@ -35,11 +35,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (ready && !user) {
-      navigate({
-        to: "/login",
-        search: { redirect: window.location.pathname },
-        replace: true,
-      });
+      navigate({ to: "/login", replace: true });
     }
   }, [ready, user, navigate]);
 
