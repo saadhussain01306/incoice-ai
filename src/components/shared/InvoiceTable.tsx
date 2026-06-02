@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import type { Invoice } from "@/types/invoice";
 import { StatusPill } from "@/components/shared/StatusPill";
 import { Mail, FolderOpen, Upload, Flame } from "lucide-react";
