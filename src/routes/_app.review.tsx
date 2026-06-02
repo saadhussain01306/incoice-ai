@@ -17,11 +17,23 @@ import {
   ZoomOut,
   ChevronLeft,
   ChevronRight,
+  Pencil,
 } from "lucide-react";
 import { StatusPill } from "@/components/shared/StatusPill";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { ExtractedFields, Invoice } from "@/types/invoice";
 
 export const Route = createFileRoute("/_app/review")({
   head: () => ({ meta: [{ title: "Human Review · Invoice AI" }] }),
