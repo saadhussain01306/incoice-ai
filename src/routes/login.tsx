@@ -36,6 +36,7 @@ function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
+      toast.success("Signed in successfully", { description: `Welcome back, ${email}.` });
       navigate({ to: "/", replace: true });
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Sign-in failed");
