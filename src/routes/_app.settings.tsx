@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,19 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/store/authStore";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_app/settings")({
   ssr: false,
@@ -15,7 +28,32 @@ export const Route = createFileRoute("/_app/settings")({
 
 function SettingsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isAdmin = user?.role === "admin";
+
+  const [confidence, setConfidence] = useState("0.90");
+  const [maxAmount, setMaxAmount] = useState("500000");
+  const [blockDup, setBlockDup] = useState(true);
+  const [captureCorrections, setCaptureCorrections] = useState(true);
+  const [dirty, setDirty] = useState(false);
+
+  const markDirty = () => setDirty(true);
+
+  const handleSave = () => {
+    setDirty(false);
+    toast.success("Settings saved successfully", {
+      description: "Auto-submission rules and thresholds updated.",
+    });
+  };
+
+  const handleCancel = () => {
+    if (dirty) {
+      toast.message("Unsaved changes discarded", {
+        description: "You exited without saving.",
+      });
+    }
+    navigate({ to: "/" });
+  };
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 animate-fade-in">
@@ -31,11 +69,17 @@ function SettingsPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Confidence threshold</Label>
-            <Input defaultValue="0.90" />
+            <Input
+              value={confidence}
+              onChange={(e) => { setConfidence(e.target.value); markDirty(); }}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Max auto-submit amount (INR)</Label>
-            <Input defaultValue="500000" />
+            <Input
+              value={maxAmount}
+              onChange={(e) => { setMaxAmount(e.target.value); markDirty(); }}
+            />
           </div>
         </div>
         <div className="flex items-center justify-between rounded-md border p-3">
@@ -43,14 +87,20 @@ function SettingsPage() {
             <div className="text-sm font-medium">Block on duplicate detection</div>
             <div className="text-xs text-muted-foreground">Route to review if hash match found</div>
           </div>
-          <Switch defaultChecked />
+          <Switch
+            checked={blockDup}
+            onCheckedChange={(v) => { setBlockDup(v); markDirty(); }}
+          />
         </div>
         <div className="flex items-center justify-between rounded-md border p-3">
           <div>
             <div className="text-sm font-medium">Capture reviewer corrections</div>
             <div className="text-xs text-muted-foreground">Feeds the AI learning loop</div>
           </div>
-          <Switch defaultChecked />
+          <Switch
+            checked={captureCorrections}
+            onCheckedChange={(v) => { setCaptureCorrections(v); markDirty(); }}
+          />
         </div>
       </Card>
 
@@ -75,8 +125,10 @@ function SettingsPage() {
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button variant="outline">Cancel</Button>
-        <Button>Save changes</Button>
+        <Button variant="outline" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button onClick={handleSave}>Save changes</Button>
       </div>
     </div>
   );
@@ -107,3 +159,4 @@ function Row({
     </div>
   );
 }
+

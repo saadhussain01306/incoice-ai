@@ -31,6 +31,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ExtractedFields, Invoice } from "@/types/invoice";
@@ -124,6 +135,39 @@ function ReviewPage() {
 
 function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invoices"][number] }) {
   const [overrideOpen, setOverrideOpen] = useState(false);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"submit" | "reprocess" | "escalate" | null>(null);
+
+  const openConfirm = (action: "submit" | "reprocess" | "escalate") => {
+    setConfirmAction(action);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirm = () => {
+    setConfirmOpen(false);
+    if (confirmAction === "submit") {
+      toast.success(`${invoice.id}: submitted to vendor portal`, {
+        description: "Playwright automation will complete the submission.",
+      });
+    } else if (confirmAction === "reprocess") {
+      toast.message(`${invoice.id}: queued for re-extraction`, {
+        description: "AI pipeline will re-run OCR and field extraction.",
+      });
+    } else if (confirmAction === "escalate") {
+      toast.warning(`${invoice.id}: escalated to finance lead`, {
+        description: "The reviewer team will be notified.",
+      });
+    }
+    setConfirmAction(null);
+  };
+
+  const handleReject = () => {
+    toast.error(`${invoice.id}: rejected and archived`, {
+      description: "Invoice will not be submitted. Audit trail logged.",
+    });
+  };
+
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden p-0">
@@ -224,12 +268,7 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
       </Card>
 
       <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6">
-        <Button
-          onClick={() => {
-            // TODO: POST /invoices/:id/submit → ECS Playwright auto-submission
-            toast.success(`${invoice.id}: forced to auto-submit`);
-          }}
-        >
+        <Button onClick={() => openConfirm("submit")}>
           <CheckCircle2 className="mr-1.5 h-4 w-4" /> Accept AI & Submit
         </Button>
         <Button
@@ -240,205 +279,29 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
         </Button>
         <Button
           variant="outline"
-          onClick={() => {
-            // TODO: POST /invoices/:id/reprocess → re-run extraction pipeline
-            toast.message(`${invoice.id}: reprocessing requested`);
-          }}
+          onClick={() => openConfirm("reprocess")}
         >
           <Undo2 className="mr-1.5 h-4 w-4" /> Reprocess
         </Button>
         <Button
           variant="ghost"
           className="text-warning"
-          onClick={() => toast.warning(`${invoice.id}: escalated to finance lead`)}
+          onClick={() => openConfirm("escalate")}
         >
           <ShieldAlert className="mr-1.5 h-4 w-4" /> Escalate
         </Button>
-        <Button
-          variant="destructive"
-          className="ml-auto"
-          onClick={() => {
-            // TODO: POST /invoices/:id/reject
-            toast.error(`${invoice.id}: rejected`);
-          }}
-        >
-          <XCircle className="mr-1.5 h-4 w-4" /> Reject
-        </Button>
-      </div>
 
-      <OverrideDialog open={overrideOpen} onOpenChange={setOverrideOpen} invoice={invoice} />
-    </div>
-  );
-}
-
-function OverrideDialog({
-  open,
-  onOpenChange,
-  invoice,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  invoice: Invoice;
-}) {
-  const [values, setValues] = useState<ExtractedFields>(invoice.extracted);
-
-  const set = <K extends keyof ExtractedFields>(key: K, v: ExtractedFields[K]) =>
-    setValues((prev) => ({ ...prev, [key]: v }));
-
-  const numericKeys: Array<keyof ExtractedFields> = [
-    "subtotal",
-    "taxRate",
-    "taxAmount",
-    "totalAmount",
-  ];
-
-  const fields: { key: keyof ExtractedFields; label: string; type?: "number" | "text" }[] = [
-    { key: "invoiceNumber", label: "Invoice #" },
-    { key: "vendorName", label: "Vendor" },
-    { key: "gstNumber", label: "GSTIN" },
-    { key: "invoiceDate", label: "Date" },
-    { key: "currency", label: "Currency" },
-    { key: "subtotal", label: "Subtotal", type: "number" },
-    { key: "taxRate", label: "Tax Rate (%)", type: "number" },
-    { key: "taxAmount", label: "Tax Amount", type: "number" },
-    { key: "totalAmount", label: "Total Amount", type: "number" },
-  ];
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Pencil className="h-4 w-4" /> Override extracted values
-          </DialogTitle>
-          <DialogDescription>
-            Edits are saved as ground-truth and fed back into the extraction model's training loop.
-            Invoice <span className="font-mono">{invoice.id}</span> · {invoice.vendor}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid max-h-[55vh] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
-          {fields.map((f) => {
-            const portalVal = invoice.portal[f.key];
-            const aiVal = invoice.extracted[f.key];
-            const drift = String(portalVal) !== String(aiVal);
-            return (
-              <div key={String(f.key)} className="space-y-1">
-                <Label className="flex items-center justify-between text-xs">
-                  <span>{f.label}</span>
-                  {drift && (
-                    <span className="text-[10px] font-normal text-destructive">
-                      portal: {String(portalVal)}
-                    </span>
-                  )}
-                </Label>
-                <Input
-                  type={numericKeys.includes(f.key) ? "number" : "text"}
-                  value={String(values[f.key] ?? "")}
-                  onChange={(e) =>
-                    set(
-                      f.key,
-                      (numericKeys.includes(f.key)
-                        ? Number(e.target.value)
-                        : e.target.value) as ExtractedFields[typeof f.key],
-                    )
-                  }
-                  className={cn(drift && "border-destructive/60")}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-        <DialogFooter className="gap-2 sm:gap-2">
-          <Button
-            variant="ghost"
-            onClick={() => setValues(invoice.portal)}
-          >
-            Copy from portal
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setValues(invoice.extracted)}
-          >
-            Reset
-          </Button>
-          <Button
-            onClick={() => {
-              // TODO: POST /invoices/:id/override with corrected fields → feedback loop
-              toast.success(`${invoice.id}: overrides saved & queued for re-submission`);
-              onOpenChange(false);
-            }}
-          >
-            <CheckCircle2 className="mr-1.5 h-4 w-4" /> Save & resubmit
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function BoundingField({
-  label,
-  value,
-  confidence,
-  mismatch,
-}: {
-  label: string;
-  value: string;
-  confidence: number;
-  mismatch?: boolean;
-}) {
-  return (
-    <div className={cn("relative rounded-md border border-dashed p-2", mismatch ? "border-destructive/60 bg-destructive/10" : "border-ai/40 bg-ai/5")}>
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="text-sm font-medium tabular-nums">{value}</div>
-      <span className={cn("absolute right-1.5 top-1.5 text-[9px] tabular-nums", mismatch ? "text-destructive" : "text-ai")}>
-        {(confidence * 100).toFixed(0)}%
-      </span>
-    </div>
-  );
-}
-
-function FieldList({
-  fields,
-  mismatches,
-  side,
-  portal,
-}: {
-  fields: ReturnType<typeof useApp>["invoices"][number]["extracted"];
-  portal: ReturnType<typeof useApp>["invoices"][number]["portal"];
-  mismatches: string[];
-  side: "ai" | "portal";
-}) {
-  const gstMis = mismatches.some((m) => m.includes("GST"));
-  const amtMis = mismatches.some((m) => m.includes("amount"));
-  const rows: { label: string; value: string; bad?: boolean }[] = [
-    { label: "Invoice #", value: fields.invoiceNumber },
-    { label: "Vendor", value: fields.vendorName },
-    { label: "GSTIN", value: fields.gstNumber },
-    { label: "Date", value: fields.invoiceDate },
-    { label: "Currency", value: fields.currency },
-    { label: "Tax Rate", value: `${fields.taxRate}%`, bad: gstMis },
-    { label: "Subtotal", value: fmt(fields.subtotal) },
-    { label: "Tax", value: fmt(fields.taxAmount), bad: gstMis },
-    { label: "Total", value: fmt(fields.totalAmount), bad: amtMis },
-  ];
-  return (
-    <dl className="divide-y divide-border">
-      {rows.map((r) => (
-        <div key={r.label} className="flex items-center justify-between py-2">
-          <dt className="text-xs text-muted-foreground">{r.label}</dt>
-          <dd className={cn("text-sm font-medium tabular-nums", r.bad && "text-destructive")}>
-            {r.value}
-            {r.bad && side === "ai" && (
-              <span className="ml-1.5 text-[10px] text-muted-foreground">
-                (portal: {r.label === "Tax Rate" ? `${portal.taxRate}%` : r.label === "Total" ? fmt(portal.totalAmount) : fmt(portal.taxAmount)})
-              </span>
-            )}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="ml-auto">
+              <XCircle className="mr-1.5 h-4 w-4" /> Reject
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                Reject this invoice?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently reject <span className="font-mono">{invoice.id}</span> from{
