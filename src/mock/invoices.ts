@@ -61,7 +61,7 @@ function makeInvoice(i: number): Invoice {
     vendor,
     amount,
     portalAmount,
-    uploadedAt: new Date(Date.now() - i * 1000 * 60 * 17).toISOString(),
+    uploadedAt: new Date(BASE_TS - i * 1000 * 60 * 17).toISOString(),
     source: sources[i % sources.length],
     status,
     confidence,
@@ -72,7 +72,7 @@ function makeInvoice(i: number): Invoice {
       invoiceNumber: id,
       vendorName: vendor,
       gstNumber: `27AABCU${9600 + i}R1Z${i % 9}`,
-      invoiceDate: new Date(Date.now() - i * 1000 * 60 * 60 * 6)
+      invoiceDate: new Date(BASE_TS - i * 1000 * 60 * 60 * 6)
         .toISOString()
         .slice(0, 10),
       currency: "INR",
@@ -85,7 +85,7 @@ function makeInvoice(i: number): Invoice {
       invoiceNumber: id,
       vendorName: vendor,
       gstNumber: `27AABCU${9600 + i}R1Z${i % 9}`,
-      invoiceDate: new Date(Date.now() - i * 1000 * 60 * 60 * 6)
+      invoiceDate: new Date(BASE_TS - i * 1000 * 60 * 60 * 6)
         .toISOString()
         .slice(0, 10),
       currency: "INR",
