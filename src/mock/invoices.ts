@@ -110,7 +110,7 @@ export const mockAudit: AuditEvent[] = mockInvoices.flatMap((inv, i) => {
     {
       id: `${inv.id}-A1`,
       invoiceId: inv.id,
-      actor: "Lambda: ingest-fn",
+      actor: "Ingestion Service",
       action: `Invoice received from ${inv.source}`,
       timestamp: inv.uploadedAt,
       status: "info",
@@ -118,7 +118,7 @@ export const mockAudit: AuditEvent[] = mockInvoices.flatMap((inv, i) => {
     {
       id: `${inv.id}-A2`,
       invoiceId: inv.id,
-      actor: "Bedrock + Textract",
+      actor: "AI Extraction",
       action: `Extracted ${Object.keys(inv.extracted).length} fields · confidence ${(inv.confidence * 100).toFixed(1)}%`,
       timestamp: new Date(new Date(inv.uploadedAt).getTime() + 12000).toISOString(),
       status: "success",
@@ -128,7 +128,7 @@ export const mockAudit: AuditEvent[] = mockInvoices.flatMap((inv, i) => {
     base.push({
       id: `${inv.id}-A3`,
       invoiceId: inv.id,
-      actor: "ECS Fargate: playwright-agent",
+      actor: "Submission Agent",
       action: "Auto-submitted to vendor portal",
       timestamp: new Date(new Date(inv.uploadedAt).getTime() + 45000).toISOString(),
       status: "success",
@@ -146,7 +146,7 @@ export const mockAudit: AuditEvent[] = mockInvoices.flatMap((inv, i) => {
     base.push({
       id: `${inv.id}-A3`,
       invoiceId: inv.id,
-      actor: "Playwright Agent",
+      actor: "Submission Agent",
       action: "Submission failed — portal returned 502",
       timestamp: new Date(new Date(inv.uploadedAt).getTime() + 60000).toISOString(),
       status: "error",
