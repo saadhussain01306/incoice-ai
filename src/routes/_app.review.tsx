@@ -234,12 +234,9 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
         </Button>
         <Button
           variant="outline"
-          onClick={() => {
-            // TODO: POST /invoices/:id/override → store correction for feedback loop
-            toast.info(`${invoice.id}: opening override editor`);
-          }}
+          onClick={() => setOverrideOpen(true)}
         >
-          Override values
+          <Pencil className="mr-1.5 h-4 w-4" /> Override values
         </Button>
         <Button
           variant="outline"
