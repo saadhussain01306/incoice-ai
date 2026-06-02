@@ -17,11 +17,23 @@ import {
   ZoomOut,
   ChevronLeft,
   ChevronRight,
+  Pencil,
 } from "lucide-react";
 import { StatusPill } from "@/components/shared/StatusPill";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { ExtractedFields, Invoice } from "@/types/invoice";
 
 export const Route = createFileRoute("/_app/review")({
   head: () => ({ meta: [{ title: "Human Review · Invoice AI" }] }),
@@ -111,6 +123,7 @@ function ReviewPage() {
 }
 
 function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invoices"][number] }) {
+  const [overrideOpen, setOverrideOpen] = useState(false);
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden p-0">
@@ -221,12 +234,9 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
         </Button>
         <Button
           variant="outline"
-          onClick={() => {
-            // TODO: POST /invoices/:id/override → store correction for feedback loop
-            toast.info(`${invoice.id}: opening override editor`);
-          }}
+          onClick={() => setOverrideOpen(true)}
         >
-          Override values
+          <Pencil className="mr-1.5 h-4 w-4" /> Override values
         </Button>
         <Button
           variant="outline"
@@ -255,7 +265,116 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
           <XCircle className="mr-1.5 h-4 w-4" /> Reject
         </Button>
       </div>
+
+      <OverrideDialog open={overrideOpen} onOpenChange={setOverrideOpen} invoice={invoice} />
     </div>
+  );
+}
+
+function OverrideDialog({
+  open,
+  onOpenChange,
+  invoice,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  invoice: Invoice;
+}) {
+  const [values, setValues] = useState<ExtractedFields>(invoice.extracted);
+
+  const set = <K extends keyof ExtractedFields>(key: K, v: ExtractedFields[K]) =>
+    setValues((prev) => ({ ...prev, [key]: v }));
+
+  const numericKeys: Array<keyof ExtractedFields> = [
+    "subtotal",
+    "taxRate",
+    "taxAmount",
+    "totalAmount",
+  ];
+
+  const fields: { key: keyof ExtractedFields; label: string; type?: "number" | "text" }[] = [
+    { key: "invoiceNumber", label: "Invoice #" },
+    { key: "vendorName", label: "Vendor" },
+    { key: "gstNumber", label: "GSTIN" },
+    { key: "invoiceDate", label: "Date" },
+    { key: "currency", label: "Currency" },
+    { key: "subtotal", label: "Subtotal", type: "number" },
+    { key: "taxRate", label: "Tax Rate (%)", type: "number" },
+    { key: "taxAmount", label: "Tax Amount", type: "number" },
+    { key: "totalAmount", label: "Total Amount", type: "number" },
+  ];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="h-4 w-4" /> Override extracted values
+          </DialogTitle>
+          <DialogDescription>
+            Edits are saved as ground-truth and fed back into the extraction model's training loop.
+            Invoice <span className="font-mono">{invoice.id}</span> · {invoice.vendor}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid max-h-[55vh] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+          {fields.map((f) => {
+            const portalVal = invoice.portal[f.key];
+            const aiVal = invoice.extracted[f.key];
+            const drift = String(portalVal) !== String(aiVal);
+            return (
+              <div key={String(f.key)} className="space-y-1">
+                <Label className="flex items-center justify-between text-xs">
+                  <span>{f.label}</span>
+                  {drift && (
+                    <span className="text-[10px] font-normal text-destructive">
+                      portal: {String(portalVal)}
+                    </span>
+                  )}
+                </Label>
+                <Input
+                  type={numericKeys.includes(f.key) ? "number" : "text"}
+                  value={String(values[f.key] ?? "")}
+                  onChange={(e) =>
+                    set(
+                      f.key,
+                      (numericKeys.includes(f.key)
+                        ? Number(e.target.value)
+                        : e.target.value) as ExtractedFields[typeof f.key],
+                    )
+                  }
+                  className={cn(drift && "border-destructive/60")}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => setValues(invoice.portal)}
+          >
+            Copy from portal
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setValues(invoice.extracted)}
+          >
+            Reset
+          </Button>
+          <Button
+            onClick={() => {
+              // TODO: POST /invoices/:id/override with corrected fields → feedback loop
+              toast.success(`${invoice.id}: overrides saved & queued for re-submission`);
+              onOpenChange(false);
+            }}
+          >
+            <CheckCircle2 className="mr-1.5 h-4 w-4" /> Save & resubmit
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
