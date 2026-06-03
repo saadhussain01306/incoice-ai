@@ -78,7 +78,7 @@ function ValidationPage() {
           title="PO Validation Failed"
           value={stats.poFail}
           icon={<FileBarChart2 className="h-4 w-4" />}
-          accent={stats.poFail ? "destructive" : "success"}
+          accent={stats.poFail ? "warning" : "success"}
         />
         <MetricCard
           title="Receiving Warnings"
@@ -96,7 +96,7 @@ function ValidationPage() {
           title="High-Risk Invoices"
           value={stats.highRisk}
           icon={<ShieldAlert className="h-4 w-4" />}
-          accent={stats.highRisk ? "destructive" : "success"}
+          accent={stats.highRisk ? "warning" : "success"}
         />
       </div>
 
