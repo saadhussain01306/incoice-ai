@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { InvoiceTable } from "@/components/shared/InvoiceTable";
 import { useApp } from "@/store/appStore";
+import { ValidationModules } from "@/components/validation/ValidationModules";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -280,6 +281,8 @@ function ReviewWorkspace({ invoice }: { invoice: ReturnType<typeof useApp>["invo
           </div>
         </div>
       </Card>
+
+      <ValidationModules invoice={invoice} />
 
       <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6">
         <Button onClick={() => openConfirm("submit")}>
