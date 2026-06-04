@@ -10,6 +10,8 @@ import {
   BarChart3,
   Activity,
   Settings,
+  ExternalLink,
+  Building2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -77,6 +79,31 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Reference</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Procurement Portal">
+                  <a
+                    href="/portal"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    <Building2 className="h-4 w-4 shrink-0" />
+                    {!collapsed && (
+                      <span className="flex flex-1 items-center justify-between">
+                        Procurement Portal
+                        <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                      </span>
+                    )}
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
