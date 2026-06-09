@@ -97,12 +97,12 @@ function PortalPage() {
             </p>
           </div>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-[#626469]" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search invoice / vendor / PO / GSTIN"
-              className="w-80 rounded border border-slate-300 bg-white py-2 pl-8 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              className="w-80 rounded border border-slate-300 bg-white py-2 pl-8 pr-3 text-sm outline-none focus:border-[#3DCD58] focus:ring-2 focus:ring-[#7AE38F]/40"
             />
           </div>
         </div>
