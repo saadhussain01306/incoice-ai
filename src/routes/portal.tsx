@@ -158,7 +158,7 @@ function PortalPage() {
                       className={
                         "inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium " +
                         (r.status === "ACCEPTED"
-                          ? "bg-emerald-100 text-emerald-700"
+                          ? "bg-[#3DCD58]/15 text-[#22B14C]"
                           : r.status === "REJECTED"
                             ? "bg-red-100 text-red-700"
                             : "bg-amber-100 text-amber-700")
