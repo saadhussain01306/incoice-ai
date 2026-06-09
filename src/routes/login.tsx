@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "@/store/authStore";
 import { toast } from "sonner";
-import { Sparkles, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
+import seLogo from "@/assets/se-logo.png.asset.json";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Sign in · Invoice AI" }] }),
+  head: () => ({ meta: [{ title: "Sign in · InvoiceAI-mySchneider" }] }),
   component: () => (
     <AuthProvider>
       <LoginPage />
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { user, ready, login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("reviewer@acme.io");
+  const [email, setEmail] = useState("reviewer@schneider-electric.com");
   const [password, setPassword] = useState("demo");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,13 +50,17 @@ function LoginPage() {
     <div className="grid min-h-screen place-items-center bg-background grid-bg p-4">
       <Card className="w-full max-w-sm p-6">
         <div className="mb-6 flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
-          </div>
+          <img
+            src={seLogo.url}
+            alt="Schneider Electric"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-md"
+          />
           <div className="leading-tight">
-            <div className="text-sm font-semibold">Invoice AI</div>
+            <div className="text-sm font-semibold">InvoiceAI-mySchneider</div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Operations Console
+              Schneider Electric · Operations Console
             </div>
           </div>
         </div>
@@ -65,7 +70,7 @@ function LoginPage() {
         </p>
         <form className="space-y-4" onSubmit={onSubmit}>
           <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Corporate email</Label>
             <Input
               id="email"
               type="email"
@@ -97,7 +102,10 @@ function LoginPage() {
           </Button>
         </form>
         <p className="mt-4 text-center text-[11px] text-muted-foreground">
-          Tip: use <code className="text-foreground">admin@acme.io</code> for admin role.
+          Tip: use <code className="text-foreground">admin@schneider-electric.com</code> for admin role.
+        </p>
+        <p className="mt-3 text-center text-[10px] text-muted-foreground">
+          © {new Date().getFullYear()} Schneider Electric · Internal Use Only
         </p>
       </Card>
     </div>

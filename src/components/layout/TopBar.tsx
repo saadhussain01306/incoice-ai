@@ -32,11 +32,11 @@ export function TopBar() {
   ).length;
 
   const [dark, setDark] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
+    if (typeof window === "undefined") return false;
     const stored = window.localStorage.getItem(THEME_KEY);
-    if (stored === "light") return false;
     if (stored === "dark") return true;
-    return true;
+    if (stored === "light") return false;
+    return false; // Schneider default: light theme
   });
 
   useEffect(() => {

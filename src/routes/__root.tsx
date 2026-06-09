@@ -77,24 +77,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Invoice Harmony is an AI-powered dashboard for automated invoice validation and submission." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Invoice Harmony is an AI-powered dashboard for automated invoice validation and submission." },
+      { title: "InvoiceAI-mySchneider" },
+      { name: "description", content: "InvoiceAI-mySchneider — Schneider Electric AP automation platform for AI invoice validation and auto-submission." },
+      { name: "author", content: "Schneider Electric" },
+      { property: "og:title", content: "InvoiceAI-mySchneider" },
+      { property: "og:description", content: "Schneider Electric AP automation platform for AI invoice validation and auto-submission." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Invoice Harmony is an AI-powered dashboard for automated invoice validation and submission." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bec29da5-26c1-402d-8074-6c7af50f226a/id-preview-45e8fab7--c885789f-2483-42e2-b27e-b4a82178bb16.lovable.app-1780422146468.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bec29da5-26c1-402d-8074-6c7af50f226a/id-preview-45e8fab7--c885789f-2483-42e2-b27e-b4a82178bb16.lovable.app-1780422146468.png" },
+      { name: "twitter:title", content: "InvoiceAI-mySchneider" },
+      { name: "twitter:description", content: "Schneider Electric AP automation platform for AI invoice validation and auto-submission." },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "icon", type: "image/png", href: "/__l5e/assets-v1/91346926-3106-4783-a52f-8b5ac8d97c08/se-logo.png" },
+      { rel: "stylesheet", href: appCss },
     ],
   }),
   shellComponent: RootShell,
@@ -105,7 +100,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>

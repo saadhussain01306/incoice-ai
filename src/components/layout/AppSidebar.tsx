@@ -7,8 +7,8 @@ import {
   UserCheck,
   Send,
   FileClock,
-  BarChart3,
-  Activity,
+  // BarChart3,   // Analytics — temporarily disabled, kept for future re-enable
+  // Activity,    // System Health — temporarily disabled, kept for future re-enable
   Settings,
   ExternalLink,
   Building2,
@@ -25,6 +25,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import seLogo from "@/assets/se-logo.png.asset.json";
 
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -34,8 +35,8 @@ const items = [
   { title: "Human Review", url: "/review", icon: UserCheck },
   { title: "Auto Submission", url: "/submissions", icon: Send },
   { title: "Audit Trail", url: "/audit", icon: FileClock },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "System Health", url: "/health", icon: Activity },
+  // { title: "Analytics", url: "/analytics", icon: BarChart3 },        // Disabled per product requirements
+  // { title: "System Health", url: "/health", icon: Activity },        // Disabled per product requirements
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -48,14 +49,18 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
-            <Sparkles className="h-4 w-4" />
-          </div>
+          <img
+            src={seLogo.url}
+            alt="Schneider Electric"
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-md shadow-sm"
+          />
           {!collapsed && (
             <div className="leading-tight">
-              <div className="text-sm font-semibold">Invoice AI</div>
+              <div className="text-sm font-semibold">InvoiceAI-mySchneider</div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Validation & Auto-Submit
+                Schneider Electric · AP Automation
               </div>
             </div>
           )}
@@ -97,7 +102,7 @@ export function AppSidebar() {
                     <Building2 className="h-4 w-4 shrink-0" />
                     {!collapsed && (
                       <span className="flex flex-1 items-center justify-between">
-                        Procurement Portal
+                        InvoicePortal-mySchneider
                         <ExternalLink className="h-3 w-3 text-muted-foreground" />
                       </span>
                     )}
