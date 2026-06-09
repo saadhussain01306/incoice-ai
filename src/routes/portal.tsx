@@ -195,10 +195,10 @@ function StatCard({
 }) {
   const color =
     tone === "success"
-      ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+      ? "text-[#22B14C] bg-[#3DCD58]/10 border-[#7AE38F]"
       : tone === "warn"
         ? "text-amber-700 bg-amber-50 border-amber-200"
-        : "text-blue-700 bg-blue-50 border-blue-200";
+        : "text-[#222222] bg-[#F4F4F4] border-slate-200";
   return (
     <div className="rounded border border-slate-200 bg-white p-4">
       <div className="flex items-center justify-between">
