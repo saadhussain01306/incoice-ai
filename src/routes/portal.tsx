@@ -5,7 +5,7 @@ import { Building2, Search, ArrowLeft, FileText, ShieldCheck } from "lucide-reac
 
 export const Route = createFileRoute("/portal")({
   head: () => ({
-    meta: [{ title: "Acme Procurement Portal · Vendor Reference" }],
+    meta: [{ title: "InvoicePortal-mySchneider · Vendor Reference" }],
   }),
   component: PortalPage,
 });
